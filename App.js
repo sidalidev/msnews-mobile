@@ -1,4 +1,11 @@
-import { View, Text, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Button,
+  TextInput,
+} from "react-native";
 import Accueil from "./components/Accueil";
 import Achats from "./components/Achats";
 import Profil from "./components/Profil";
@@ -6,7 +13,7 @@ import { useState } from "react";
 
 // Flexbox
 
-export default function App() {
+function LoggedInApp(props) {
   const [page, setPage] = useState("accueil");
 
   function goAchats() {
@@ -54,6 +61,10 @@ export default function App() {
           // backgroundColor: "lightblue",
         }}
       >
+        <Button
+          title="🔐 Se déconnecter"
+          onPress={() => props.setLoggedIn(false)}
+        />
         {showPage()}
       </View>
       <View
@@ -101,3 +112,89 @@ export default function App() {
     </View>
   );
 }
+
+function AuthApp(props) {
+  const [email, setEmail] = useState("jmroyer@origian.com");
+  const [password, setPassword] = useState("123456");
+
+  function logIn() {
+    fetch("http://localhost:3000/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        console.log("data", data);
+        alert(JSON.stringify(data));
+        const jwt = data.token;
+        props.setLoggedIn(true);
+
+        // 1. Stocker le token dans le téléphone
+        // 2. Lire le token dans le téléphone
+      });
+  }
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      {/* <Text>AuthApp</Text> -> iOS UIText placeholder -> Android TextView plchder */}
+      <Text
+        style={{
+          fontSize: 30,
+          fontWeight: "bold",
+          marginBottom: 20,
+        }}
+      >
+        Connexion
+      </Text>
+      <TextInput
+        placeholder="Email"
+        style={inputStyle}
+        value={email}
+        onChangeText={(text) => setEmail(text)}
+      />
+      <TextInput
+        placeholder="Mot de passe"
+        style={inputStyle}
+        autoComplete="password"
+        secureTextEntry={true}
+        value={password}
+        onChangeText={(text) => setPassword(text)}
+      />
+
+      <Button title="🔐 Se connecter" onPress={logIn} />
+    </View>
+  );
+}
+
+export default function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  function showPage() {
+    if (loggedIn) {
+      return <LoggedInApp setLoggedIn={setLoggedIn} />;
+    } else {
+      return <AuthApp setLoggedIn={setLoggedIn} />;
+    }
+  }
+  return <View style={{ flex: 1 }}>{showPage()}</View>;
+}
+
+const inputStyle = {
+  borderWidth: 1,
+  borderColor: "lightgray",
+  width: 200,
+  padding: 10,
+  marginBottom: 10,
+  borderRadius: 10,
+};
